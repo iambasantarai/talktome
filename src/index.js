@@ -24,28 +24,33 @@ console.log(`Version: ${pkg.version}`);
 const ig = new IgApiClient();
 
 const authenticator = async () => {
-  const { username, password } = await inquirer.prompt([
-    {
-      name: 'username',
-      type: 'input',
-      prefix: '>',
-      message: 'Enter your username: ',
-    },
-    {
-      name: 'password',
-      type: 'password',
-      mask: '*',
-      prefix: '>',
-      message: 'Enter your password: ',
-    },
-  ]);
+  try {
+    const { username, password } = await inquirer.prompt([
+      {
+        name: 'username',
+        type: 'input',
+        prefix: '>',
+        message: 'Enter your username: ',
+      },
+      {
+        name: 'password',
+        type: 'password',
+        mask: '*',
+        prefix: '>',
+        message: 'Enter your password: ',
+      },
+    ]);
 
-  ig.state.generateDevice(username);
+    ig.state.generateDevice(username);
 
-  return await ig.account.login(username, password);
+    return await ig.account.login(username, password);
+  } catch (error) {
+    console.log(`Can't log in. ${error.response.body.message}`);
+  }
 };
 
 (async () => {
   const loggedInUser = await authenticator();
-  console.log('\r Logged in as ', loggedInUser.username);
+
+  if (loggedInUser) console.log('\r Logged in as ', loggedInUser.username);
 })();
