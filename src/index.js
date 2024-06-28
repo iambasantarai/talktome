@@ -18,6 +18,7 @@ console.log(
     font: 'Small Slant',
   }),
 );
+console.log('A CLI app for sending and receiving instagram messages.');
 console.log(`Version: ${pkg.version}`);
 
 const ig = new IgApiClient();
