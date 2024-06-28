@@ -1,0 +1,19 @@
+{
+  "name": "talktome",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "talktome": "./src/index.js"
+  },
+  "scripts": {
+    "dev": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "figlet": "^1.7.0"
+  }
+}
