@@ -7,7 +7,10 @@ import { readFileSync } from 'fs';
 
 import figlet from 'figlet';
 import inquirer from 'inquirer';
-import { IgApiClient } from 'instagram-private-api';
+import {
+  IgApiClient,
+  IgLoginTwoFactorRequiredError,
+} from 'instagram-private-api';
 
 const pkgPath = path.join(process.cwd(), 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
@@ -45,6 +48,32 @@ const authenticator = async () => {
 
     return await ig.account.login(username, password);
   } catch (error) {
+    if (error instanceof IgLoginTwoFactorRequiredError) {
+      try {
+        const { username, totp_two_factor_on, two_factor_identifier } =
+          error.response.body.two_factor_info;
+        const verificationMethod = totp_two_factor_on ? '0' : '1';
+
+        const { otp } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'otp',
+            prefix: '>',
+            message: `Enter otp received via ${verificationMethod === '1' ? 'SMS' : 'TOTP'}: `,
+          },
+        ]);
+
+        return await ig.account.twoFactorLogin({
+          username,
+          verificationCode: otp,
+          twoFactorIdentifier: two_factor_identifier,
+          verificationMethod,
+          trustThisDevice: '1',
+        });
+      } catch (error) {
+        console.log(`Can't log in. ${error.response.body.message}`);
+      }
+    }
     console.log(`Can't log in. ${error.response.body.message}`);
   }
 };
