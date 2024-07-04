@@ -78,8 +78,23 @@ const authenticator = async () => {
   }
 };
 
+async function viewFollowers(user) {
+  try {
+    const followers = await ig.feed.accountFollowers(user.pk).items();
+
+    console.log('\r My followers');
+    followers.map((follower) => {
+      console.log(`\r ${follower.full_name} (@${follower.username})`);
+    });
+  } catch (error) {
+    console.log(error.response.body.message);
+  }
+}
+
 (async () => {
   const loggedInUser = await authenticator();
 
   if (loggedInUser) console.log('\r Logged in as ', loggedInUser.username);
+
+  if (loggedInUser) await viewFollowers(loggedInUser);
 })();
