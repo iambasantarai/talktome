@@ -3,7 +3,7 @@
 'use strict';
 
 import path from 'path';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 
 import figlet from 'figlet';
 import inquirer from 'inquirer';
@@ -13,7 +13,9 @@ import {
 } from 'instagram-private-api';
 
 const pkgPath = path.join(process.cwd(), 'package.json');
-const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+const sessionFilePath = path.join(process.cwd(), 'session.json');
+
+const pkg = JSON.parse(readFileSync(pkgPath, { encoding: 'utf8' }));
 
 process.stdout.write('\x1Bc');
 console.log(
@@ -26,8 +28,32 @@ console.log(`Version: ${pkg.version}`);
 
 const ig = new IgApiClient();
 
+function storeSession(data) {
+  writeFileSync(sessionFilePath, JSON.stringify(data));
+}
+
+function retrieveSession() {
+  return JSON.parse(readFileSync(sessionFilePath, { encoding: 'utf8' }));
+}
+
+function sessionExists() {
+  const session = retrieveSession();
+
+  if (session === '{}') return false;
+
+  return true;
+}
+
 const authenticator = async () => {
   try {
+    if (sessionExists()) {
+      await ig.simulate.preLoginFlow();
+
+      const session = retrieveSession();
+      console.log(session);
+      return await ig.state.deserialize(session);
+    }
+
     const { username, password } = await inquirer.prompt([
       {
         name: 'username',
@@ -45,6 +71,13 @@ const authenticator = async () => {
     ]);
 
     ig.state.generateDevice(username);
+
+    // This function executes after every request
+    ig.request.end$.subscribe(async () => {
+      const serialized = await ig.state.serialize();
+      delete serialized.constants; // this deletes the version info, so you'll always use the version provided by the library
+      storeSession(serialized);
+    });
 
     return await ig.account.login(username, password);
   } catch (error) {
@@ -71,9 +104,11 @@ const authenticator = async () => {
           trustThisDevice: '1',
         });
       } catch (error) {
+        console.log('ERROR: ', error);
         console.log(`Can't log in. ${error.response.body.message}`);
       }
     }
+    console.log('ERROR: ', error);
     console.log(`Can't log in. ${error.response.body.message}`);
   }
 };
