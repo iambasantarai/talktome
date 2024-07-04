@@ -82,7 +82,7 @@ async function viewFollowers(user) {
   try {
     const followers = await ig.feed.accountFollowers(user.pk).items();
 
-    console.log('\r My followers');
+    console.log('\r - My followers -');
     followers.map((follower) => {
       console.log(`\r ${follower.full_name} (@${follower.username})`);
     });
@@ -94,7 +94,34 @@ async function viewFollowers(user) {
 (async () => {
   const loggedInUser = await authenticator();
 
-  if (loggedInUser) console.log('\r Logged in as ', loggedInUser.username);
+  const choices = ['dms', 'followers', 'quit'];
 
-  if (loggedInUser) await viewFollowers(loggedInUser);
+  const { choice } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'choice',
+      prefix: '>',
+      choices,
+      message: 'Choose an action to perform.',
+    },
+  ]);
+
+  if (loggedInUser) {
+    console.log('\r Logged in as ', loggedInUser.username);
+
+    switch (choice) {
+      case 'dms':
+        console.log('\r Not implemented yet.');
+        break;
+      case 'followers':
+        viewFollowers(loggedInUser);
+        break;
+      case 'quit':
+        console.log('\r Bye!');
+        break;
+      default:
+        console.log('\r Invalid choice.');
+        break;
+    }
+  }
 })();
