@@ -26,7 +26,7 @@ console.log(`Version: ${pkg.version}`);
 
 const ig = new IgApiClient();
 
-const authenticator = async () => {
+const login = async () => {
   try {
     const { username, password } = await inquirer.prompt([
       {
@@ -75,6 +75,15 @@ const authenticator = async () => {
       }
     }
     console.log(`Can't log in. ${error.response.body.message}`);
+  }
+};
+
+const logout = async () => {
+  try {
+    await ig.account.logout();
+    console.log('\r Bye!');
+  } catch (error) {
+    console.log(`Can't log out. ${error.response.body.message}`);
   }
 };
 
@@ -174,9 +183,9 @@ async function viewFollowers(user) {
 }
 
 (async () => {
-  const loggedInUser = await authenticator();
+  const loggedInUser = await login();
 
-  const choices = ['inbox', 'followers', 'quit'];
+  const choices = ['inbox', 'followers', 'quit', 'logout'];
 
   const { choice } = await inquirer.prompt([
     {
@@ -197,6 +206,9 @@ async function viewFollowers(user) {
         break;
       case 'followers':
         await viewFollowers(loggedInUser);
+        break;
+      case 'logout':
+        await logout();
         break;
       case 'quit':
         console.log('\r Bye!');
