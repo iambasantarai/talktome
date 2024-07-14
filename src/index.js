@@ -185,19 +185,18 @@ async function viewFollowers(user) {
 (async () => {
   const loggedInUser = await login();
 
-  const choices = ['inbox', 'followers', 'quit', 'logout'];
-
-  const { choice } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'choice',
-      prefix: '?',
-      choices,
-      message: 'Choose an action to perform:',
-    },
-  ]);
-
   if (loggedInUser) {
+    const choices = ['inbox', 'followers', 'logout', 'quit'];
+
+    const { choice } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'choice',
+        prefix: '?',
+        choices,
+        message: 'Choose an action to perform:',
+      },
+    ]);
     console.log('\r Logged in as ', loggedInUser.username);
 
     switch (choice) {
